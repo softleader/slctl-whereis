@@ -1,0 +1,6 @@
+name: whereis
+version: 0.1.0
+usage: find out where SoftLeader the member is
+description: The whereis plugin
+exec:
+  command: $SL_PLUGIN_DIR/whereis

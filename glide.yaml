@@ -1,0 +1,6 @@
+package: github.com/softleader/slctl-whereis
+import:
+- package: github.com/spf13/cobra
+  version: ^0.0.3
+- package: github.com/gosuri/uitable
+- package: github.com/araddon/dateparse

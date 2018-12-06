@@ -36,6 +36,9 @@ func main() {
 		Short: "slctl whereis",
 		Long:  "to find where the member is",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if offline, _ := strconv.ParseBool(os.Getenv("SL_OFFLINE")); offline {
+				return fmt.Errorf("can not run the plugin in offline mode")
+			}
 			var ok bool
 			if c.token, ok = os.LookupEnv("SL_TOKEN"); !ok {
 				return fmt.Errorf("require GitHub access token to run the plugin")

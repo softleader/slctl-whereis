@@ -42,7 +42,7 @@ func main() {
 				return fmt.Errorf("can not run the command in offline mode")
 			}
 			if c.token = os.ExpandEnv(c.token); c.token == "" {
-				return fmt.Errorf("require GitHub access token to run the plugin")
+				return fmt.Errorf("require GitHub access token to run the command")
 			}
 			if len(args) > 0 {
 				c.name = args[0]

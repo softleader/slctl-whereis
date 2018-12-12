@@ -31,20 +31,19 @@ type whereisCmd struct {
 
 func main() {
 	c := whereisCmd{}
+	c.verbose, _ = strconv.ParseBool(os.Getenv("SL_VERBOSE"))
+
 	cmd := &cobra.Command{
 		Use:   "whereis NAME",
 		Short: "slctl whereis",
 		Long:  "to find where the member is",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if offline, _ := strconv.ParseBool(os.Getenv("SL_OFFLINE")); offline {
-				return fmt.Errorf("can not run the plugin in offline mode")
+				return fmt.Errorf("can not run the command in offline mode")
 			}
-			var ok bool
-			if c.token, ok = os.LookupEnv("SL_TOKEN"); !ok {
+			if c.token = os.ExpandEnv(c.token); c.token == "" {
 				return fmt.Errorf("require GitHub access token to run the plugin")
 			}
-			c.verbose, _ = strconv.ParseBool(os.Getenv("SL_VERBOSE"))
-
 			if len(args) > 0 {
 				c.name = args[0]
 			}
@@ -52,6 +51,8 @@ func main() {
 		},
 	}
 	f := cmd.Flags()
+	f.BoolVarP(&c.verbose, "verbose", "v", c.verbose, "enable verbose output, Overrides $SL_VERBOSE")
+	f.StringVar(&c.token, "token", "$SL_TOKEN", "github access token. Overrides $SL_TOKEN")
 	f.StringVarP(&c.size, "size", "s", "20", "determine output size")
 	f.StringVarP(&c.page, "page", "p", "1", "determine output page")
 	f.StringVarP(&c.from, "from", "f", time.Now().Format(layout), "filter the specified date from")
@@ -81,15 +82,20 @@ func (c *whereisCmd) run() (err error) {
 		return
 	}
 	w := whereis{}
-	json.NewDecoder(resp.Body).Decode(&w)
-
-	fmt.Printf("%s\n", w.summary())
-	table := uitable.New()
-	table.AddRow("PLACE", "NAME", "DATE", "WHERE TO")
-	for _, c := range w.Content {
-		table.AddRow(c.place(), c.name(), c.date(), c.whereTo())
+	if err = json.NewDecoder(resp.Body).Decode(&w); err != nil {
+		return err
 	}
-	fmt.Println(table)
+	if len(w.Content) == 0 {
+		fmt.Printf("No search results")
+	} else {
+		fmt.Printf("%s\n", w.summary())
+		table := uitable.New()
+		table.AddRow("PLACE", "NAME", "DATE", "WHERE TO")
+		for _, c := range w.Content {
+			table.AddRow(c.place(), c.name(), c.date(), c.whereTo())
+		}
+		fmt.Println(table)
+	}
 	return
 }
 

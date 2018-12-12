@@ -1,7 +1,6 @@
 # slctl-whereis
 
-
-The slctl plugin to find out where the SoftLeader member is
+The [slctl](https://github.com/softleader/slctl) plugin to find out where the SoftLeader member is
 
 ## Install
 

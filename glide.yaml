@@ -4,3 +4,5 @@ import:
   version: ^0.0.3
 - package: github.com/gosuri/uitable
 - package: github.com/araddon/dateparse
+- package: gopkg.in/resty.v1
+  version: ^1.10.3

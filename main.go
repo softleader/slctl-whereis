@@ -118,22 +118,26 @@ func (c *whereisCmd) run() (err error) {
 	if err != nil {
 		return
 	}
+	err = print(c.out, resp.Body())
+	return
+}
+
+func print(out io.Writer, data []byte) (err error) {
 	w := whereis{}
-	if err = json.Unmarshal([]byte(resp.String()), &w); err != nil {
+	if err = json.Unmarshal(data, &w); err != nil {
 		return fmt.Errorf("unable to unmarshal response: %s", err)
 	}
 	if len(w.Content) == 0 {
-		fmt.Fprintf(c.out, "No search results")
+		fmt.Fprintf(out, "No search results")
 	} else {
-		fmt.Fprintf(c.out, "%s\n", w.summary())
+		fmt.Fprintf(out, "%s\n", w.summary())
 		table := uitable.New()
 		table.AddRow("PLACE", "NAME", "DATE", "WHERE TO")
 		for _, c := range w.Content {
 			table.AddRow(c.place(), c.name(), c.date(), c.whereTo())
 		}
-		fmt.Fprintln(c.out, table)
+		fmt.Fprintln(out, table)
 	}
-	return
 }
 
 func (c *whereisCmd) queryParams() (qp map[string]string) {

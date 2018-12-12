@@ -61,7 +61,7 @@ func main() {
 
 	cmd := &cobra.Command{
 		Use:   "slctl whereis NAME",
-		Short: "find out where SoftLeader the member is",
+		Short: "find out where the SoftLeader member is",
 		Long:  longDesc,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if offline, _ := strconv.ParseBool(os.Getenv("SL_OFFLINE")); offline {

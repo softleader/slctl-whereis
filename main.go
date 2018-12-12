@@ -29,6 +29,7 @@ const (
 同時也支援少數自然語言, 如: 'today', 'yesterday', 'tomorrow'
 
 	$ slctl whereis -f yesterday
+	$ slctl whereis matt -f 20181201 -t 20181203
 
 查詢結果預設顯示第一頁, 每頁顯示 20 筆資料
 可以傳入 '--page' 指定頁數或傳入 '--size' 指定一頁幾筆 (一頁筆數放很大則等於不分頁)

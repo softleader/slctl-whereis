@@ -118,6 +118,10 @@ func (c *whereisCmd) run() (err error) {
 	if err != nil {
 		return
 	}
+	if !resp.IsSuccess() {
+		return fmt.Errorf(`expected response status code 2xx, but got %v.
+Use the '--verbose' flag to see the full stacktrace`, resp.StatusCode())
+	}
 	err = print(c.out, resp.Body())
 	return
 }
@@ -138,6 +142,7 @@ func print(out io.Writer, data []byte) (err error) {
 		}
 		fmt.Fprintln(out, table)
 	}
+	return
 }
 
 func (c *whereisCmd) queryParams() (qp map[string]string) {

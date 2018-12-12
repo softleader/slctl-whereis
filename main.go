@@ -14,6 +14,29 @@ import (
 	"time"
 )
 
+const (
+	longDesc = `
+查看當日公司員工在哪兒
+
+	$ slctl whereis
+
+可以使用員工姓名(模糊查詢)過濾資料
+
+	$ slctl whereis matt
+
+傳入 '--from' 或 '--to' 可以用日期區間過濾
+日期格式為年月日, 支援格式可參考: https://github.com/araddon/dateparse
+同時也支援少數自然語言, 如: 'today', 'yesterday', 'tomorrow'
+
+	$ slctl whereis -f yesterday
+
+查詢結果預設顯示第一頁, 每頁顯示 20 筆資料
+可以傳入 '--page' 指定頁數或傳入 '--size' 指定一頁幾筆 (一頁筆數放很大則等於不分頁)
+
+	$ slctl whereis -s 1000
+`
+)
+
 var (
 	api    = "http://support.softleader.com.tw/softleader-holiday"
 	layout = "2006-01-02"
@@ -35,9 +58,9 @@ func main() {
 	c.verbose, _ = strconv.ParseBool(os.Getenv("SL_VERBOSE"))
 
 	cmd := &cobra.Command{
-		Use:   "whereis NAME",
-		Short: "slctl whereis",
-		Long:  "to find where the member is",
+		Use:   "slctl whereis NAME",
+		Short: "find out where SoftLeader the member is",
+		Long:  longDesc,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if offline, _ := strconv.ParseBool(os.Getenv("SL_OFFLINE")); offline {
 				return fmt.Errorf("can not run the command in offline mode")

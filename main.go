@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
@@ -44,7 +45,10 @@ func main() {
 			if c.token = os.ExpandEnv(c.token); c.token == "" {
 				return fmt.Errorf("require GitHub access token to run the command")
 			}
-			if len(args) > 0 {
+			if len := len(args); len > 0 {
+				if len > 1 {
+					return errors.New("this command does not accept more than 1 arguments")
+				}
 				c.name = args[0]
 			}
 			return c.run()

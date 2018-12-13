@@ -97,10 +97,6 @@ func main() {
 	f.StringVarP(&c.to, "to", "t", "", "filter the specified date to")
 	f.StringVarP(&c.place, "place", "P", "", "specified the place")
 
-	cmd.AddCommand(
-		newVersionCmd(c.out),
-	)
-
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}

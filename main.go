@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
+	"gopkg.in/resty.v1"
+	"io"
 	"os"
 	"strconv"
 	"strings"
 	"time"
-	"gopkg.in/resty.v1"
-	"io"
 )
 
 const (
@@ -48,6 +48,8 @@ type whereisCmd struct {
 	verbose bool
 	token   string
 	out     io.Writer
+	cli     string
+	version string
 	name    string
 	size    string
 	page    string
@@ -58,9 +60,6 @@ type whereisCmd struct {
 
 func main() {
 	c := whereisCmd{}
-	c.offline, _ = strconv.ParseBool(os.Getenv("SL_OFFLINE"))
-	c.verbose, _ = strconv.ParseBool(os.Getenv("SL_VERBOSE"))
-
 	cmd := &cobra.Command{
 		Use:   "slctl whereis NAME",
 		Short: "find out where the SoftLeader member is",
@@ -78,10 +77,16 @@ func main() {
 				}
 				c.name = args[0]
 			}
-			c.out = cmd.OutOrStdout()
 			return c.run()
 		},
 	}
+
+	c.out = cmd.OutOrStdout()
+	c.cli = os.Getenv("SL_CLI")
+	c.version = os.Getenv("SL_VERSION")
+	c.offline, _ = strconv.ParseBool(os.Getenv("SL_OFFLINE"))
+	c.verbose, _ = strconv.ParseBool(os.Getenv("SL_VERBOSE"))
+
 	f := cmd.Flags()
 	f.BoolVarP(&c.offline, "offline", "o", c.offline, "work offline, Overrides $SL_OFFLINE")
 	f.BoolVarP(&c.verbose, "verbose", "v", c.verbose, "enable verbose output, Overrides $SL_VERBOSE")
@@ -92,6 +97,10 @@ func main() {
 	f.StringVarP(&c.to, "to", "t", "", "filter the specified date to")
 	f.StringVarP(&c.place, "place", "P", "", "specified the place")
 
+	cmd.AddCommand(
+		newVersionCmd(c.out),
+	)
+
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
@@ -101,6 +110,7 @@ func (c *whereisCmd) run() (err error) {
 	resp, err := resty.R().
 		SetQueryParams(c.queryParams()).
 		SetAuthToken(c.token).
+		SetHeader("User-Agent", fmt.Sprintf("%s/%s %s/%s", c.cli, c.version, "whereis", ver())).
 		Get(fmt.Sprintf("%s/api/whereis", api))
 	if c.verbose {
 		fmt.Fprintf(c.out, "> %v %v\n", resp.Request.Method, resp.Request.URL)

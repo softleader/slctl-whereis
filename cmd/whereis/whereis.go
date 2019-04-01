@@ -9,6 +9,7 @@ import (
 	"gopkg.in/resty.v1"
 	"io"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -35,6 +36,12 @@ const (
 可以傳入 '--page' 指定頁數或傳入 '--size' 指定一頁幾筆 (一頁筆數放很大則等於不分頁)
 
 	$ slctl whereis -s 1000
+
+
+傳入 '--grep'' 可以針對顯示的結果, 再做一次 regex 過濾, 類似 unix 系統的 'grep' 但可以跨系統使用
+
+	# 查詢 2019 年起到當日的資料, 但只顯示每個星期一的紀錄
+	$ slctl whereis matt -f 20190101 -t today --grep mon
 `
 )
 
@@ -56,6 +63,7 @@ type whereisCmd struct {
 	place   string
 	from    string
 	to      string
+	grep    string
 }
 
 func main() {
@@ -95,7 +103,8 @@ func main() {
 	f.StringVarP(&c.page, "page", "p", "1", "determine output page")
 	f.StringVarP(&c.from, "from", "f", time.Now().Format(layout), "filter the specified date from")
 	f.StringVarP(&c.to, "to", "t", "", "filter the specified date to")
-	f.StringVarP(&c.place, "place", "P", "", "specified the place")
+	f.StringVarP(&c.place, "place", "P", "", "specify the place")
+	f.StringVar(&c.grep, "grep", ".*", "specify the grep regex pattern")
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
@@ -129,11 +138,16 @@ func (c *whereisCmd) run() (err error) {
 Use the '--verbose' flag to see the full stacktrace
 `, resp.StatusCode())
 	}
-	err = print(c.out, resp.Body())
+
+	g, err := regexp.Compile(fmt.Sprintf(`(?i)%s`, c.grep))
+	if err != nil {
+		return err
+	}
+	err = print(c.out, resp.Body(), g)
 	return
 }
 
-func print(out io.Writer, data []byte) (err error) {
+func print(out io.Writer, data []byte, grep *regexp.Regexp) (err error) {
 	w := whereis{}
 	if err = json.Unmarshal(data, &w); err != nil {
 		return fmt.Errorf("unable to unmarshal response: %s", err)
@@ -145,7 +159,10 @@ func print(out io.Writer, data []byte) (err error) {
 		table := uitable.New()
 		table.AddRow("PLACE", "NAME", "DATE", "WHERE TO")
 		for _, c := range w.Content {
-			table.AddRow(c.place(), c.name(), c.date(), c.whereTo())
+			row := uitable.NewRow(c.place(), c.name(), c.date(), c.whereTo())
+			if grep.MatchString(row.String()) {
+				table.Rows = append(table.Rows, row)
+			}
 		}
 		fmt.Fprintln(out, table)
 	}

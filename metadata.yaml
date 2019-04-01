@@ -1,5 +1,5 @@
 name: whereis
-version: 0.1.0
+version: 0.2.0
 usage: find out where the SoftLeader member is
 description: The whereis plugin
 exec:

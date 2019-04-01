@@ -34,3 +34,10 @@ $ slctl whereis matt -f 20181201 -t 20181203
 ```sh
 $ slctl whereis -s 1000
 ```
+
+傳入 `--grep` 可以針對顯示的結果, 再做一次 regex 過濾, 類似 unix 系統的 'grep' 但可以跨系統使用
+
+```sh
+# 查詢 2019 年起到當日的資料, 但只顯示每個星期一的紀錄
+$ slctl whereis matt -f 20190101 -t today --grep mon
+```
